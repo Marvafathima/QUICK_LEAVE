@@ -24,7 +24,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://your-backend/api/login/', formData);
+      const response = await axios.post('http://localhost:8000/api/token/', formData);
       
       dispatch(setCredentials({
         accessToken: response.data.access,
