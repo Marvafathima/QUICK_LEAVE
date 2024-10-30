@@ -76,22 +76,24 @@ export const CustomNavbar = () => {
           <div className="flex items-center gap-4">
             <div className="mr-4 hidden lg:block">{navList}</div>
             <div className="flex items-center gap-x-1">
-              <Button
+            <a href="/login">
+               <Button
                 variant="text"
                 size="sm"
                 className="hidden lg:inline-block "
                
               >
                 <span>Log In</span>
-              </Button>
+              </Button></a>
+              <a href="/signup">
               <Button
                 variant="gradient"
                 size="sm"
                 className="hidden lg:inline-block"
                 color="green"
               >
-                <span>Sign in</span>
-              </Button>
+                <span>Sign up</span>
+              </Button></a>
             </div>
             <IconButton
               variant="text"
@@ -135,12 +137,13 @@ export const CustomNavbar = () => {
         <MobileNav open={openNav}>
           {navList}
           <div className="flex items-center gap-x-1">
-            <Button fullWidth variant="text" size="sm" className="">
+            <a href="/login">
+            <Button ripple={true} fullWidth variant="text" size="sm" className="">
               <span>Log In</span>
-            </Button>
-            <Button fullWidth variant="gradient" size="sm" className="">
-              <span>Sign in</span>
-            </Button>
+            </Button ></a>
+            <a href="/signup"><Button ripple={true} fullWidth variant="gradient" size="sm" className="">
+              <span>Sign up</span>
+            </Button></a>
           </div>
         </MobileNav>
       </Navbar>

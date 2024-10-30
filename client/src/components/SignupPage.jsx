@@ -185,11 +185,12 @@
 // };
 // export default SignupPage;
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { setCredentials } from '../app/slice/authSlice';
+// import { setCredentials } from '../app/slice/authSlice';
 import Layout from './Layout';
+import { signupUser } from '../app/slice/authSlice';
 
 const SignupPage = () => {
   const dispatch = useDispatch();
@@ -204,6 +205,8 @@ const SignupPage = () => {
     profile_pic: null,
   });
   const [errors, setErrors] = useState({});
+// const loading = useSelector(selectAuthLoading);
+//   const error = useSelector(selectAuthError);
 
   const validateForm = () => {
     const newErrors = {};
@@ -250,71 +253,94 @@ const SignupPage = () => {
       [name]: ''
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    try {
-      const formDataToSend = new FormData();
-      
-      // Explicitly append each field to FormData
-      Object.keys(formData).forEach(key => {
-        if (key === 'profile_pic') {
-          if (formData[key]) {
-            formDataToSend.append(key, formData[key]);
-          }
-        } else {
+    const formDataToSend = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (key === 'profile_pic') {
+        if (formData[key]) {
           formDataToSend.append(key, formData[key]);
         }
-      });
-
-      // Log FormData contents (for debugging)
-      for (let pair of formDataToSend.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
+      } else {
+        formDataToSend.append(key, formData[key]);
       }
+    });
 
-      const response = await axios.post('http://localhost:8000/signup/', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const authData = {
-        accessToken: response.data.access,
-        refreshToken: response.data.refresh,
-        role: response.data.role,
-      };
-
-      // Store in Redux
-      dispatch(setCredentials(authData));
-
-      // Store in localStorage
-      localStorage.setItem('authData', JSON.stringify(authData));
-      localStorage.setItem('isAuthenticated', 'true');
-
+    try {
+      await dispatch(signupUser(formDataToSend)).unwrap();
       navigate('/dashboard');
     } catch (err) {
-      const serverError = err.response?.data;
-      
-      if (typeof serverError === 'object') {
-        // Handle structured error response
-        const newErrors = {};
-        Object.keys(serverError).forEach(key => {
-          newErrors[key] = Array.isArray(serverError[key]) 
-            ? serverError[key][0] 
-            : serverError[key];
-        });
-        setErrors(newErrors);
-      } else {
-        // Handle string error message
-        setErrors({ general: serverError || 'An error occurred during signup' });
-      }
+      // Error is handled by the slice
+      console.error('Signup failed:', err);
     }
   };
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+    
+//     if (!validateForm()) {
+//       return;
+//     }
+
+//     try {
+//       const formDataToSend = new FormData();
+      
+//       // Explicitly append each field to FormData
+//       Object.keys(formData).forEach(key => {
+//         if (key === 'profile_pic') {
+//           if (formData[key]) {
+//             formDataToSend.append(key, formData[key]);
+//           }
+//         } else {
+//           formDataToSend.append(key, formData[key]);
+//         }
+//       });
+
+//       // Log FormData contents (for debugging)
+//       for (let pair of formDataToSend.entries()) {
+//         console.log(pair[0] + ': ' + pair[1]);
+//       }
+
+    //   const response = await axios.post('http://localhost:8000/signup/', formDataToSend, {
+    //     headers: {
+    //       'Content-Type': 'multipart/form-data',
+    //     },
+    //   });
+
+    //   const authData = {
+    //     accessToken: response.data.access,
+    //     refreshToken: response.data.refresh,
+    //     role: response.data.role,
+    //   };
+
+    //   // Store in Redux
+    //   dispatch(setCredentials(authData));
+
+    //   // Store in localStorage
+    //   localStorage.setItem('authData', JSON.stringify(authData));
+    //   localStorage.setItem('isAuthenticated', 'true');
+
+    //   navigate('/dashboard');
+
+//     } catch (err) {
+//       const serverError = err.response?.data;
+      
+//       if (typeof serverError === 'object') {
+//         // Handle structured error response
+//         const newErrors = {};
+//         Object.keys(serverError).forEach(key => {
+//           newErrors[key] = Array.isArray(serverError[key]) 
+//             ? serverError[key][0] 
+//             : serverError[key];
+//         });
+//         setErrors(newErrors);
+//       } else {
+//         // Handle string error message
+//         setErrors({ general: serverError || 'An error occurred during signup' });
+//       }
+//     }
+//   };
 
   return (
     <Layout>
