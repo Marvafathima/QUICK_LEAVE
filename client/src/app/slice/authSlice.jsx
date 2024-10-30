@@ -140,16 +140,7 @@ const authSlice = createSlice({
       })
       .addCase(signupUser.fulfilled, (state) => {
         state.loading = false;
-        // state.isAuthenticated = true;
-        // state.accessToken = action.payload.access;
-        // state.refreshToken = action.payload.refresh;
-        // state.user = {
-        //   email: action.payload.email,
-        //   username: action.payload.username,
-        //   role: action.payload.role
-        // };
-        // localStorage.setItem('authState', JSON.stringify(state));
-        // Login data is handled by loginUser.fulfilled
+       
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
