@@ -11,7 +11,8 @@ export const RoleProtectedRoute = ({ children, allowedRoles }) => {
 
   if (allowedRoles.includes(userRole)) {
     return children;
-  } else {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  } 
+  // else {
+  //   return <Navigate to="/unauthorized" replace />;
+  // }
 };

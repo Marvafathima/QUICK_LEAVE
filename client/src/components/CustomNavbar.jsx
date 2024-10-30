@@ -21,7 +21,7 @@ export const CustomNavbar = () => {
     const user = useSelector(selectCurrentUser);
     const [openNav, setOpenNav] =useState(false);
     const userRole = useSelector((state) => state.auth.user?.role);
-
+    console.log("navbar 24 userrole",userRole)
     useEffect(() => {
       window.addEventListener(
         "resize",
@@ -39,8 +39,52 @@ export const CustomNavbar = () => {
         
         <ul className="mt-2 mb-4 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
          
-          {userRole === "employee" ? (
-             <>
+          {userRole === "manager" ? (
+            <>
+            <Typography
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="p-1 font-normal"
+            >
+              <a href="#" className="flex items-center">
+                Dashboard
+              </a>
+            </Typography>
+            <Typography
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="p-1 font-normal"
+            >
+              <a href="#" className="flex items-center">
+                Leave Requests
+              </a>
+            </Typography>
+            <Typography
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="p-1 font-normal"
+            >
+              <a href="#" className="flex items-center">
+                Rejected Requests
+              </a>
+            </Typography>
+            <Typography
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="p-1 font-normal"
+            >
+              <a href="#" className="flex items-center">
+                Approved Requests
+              </a>
+            </Typography>
+          </> 
+          ) : (
+            // Render manager options if the user role is manager
+            <>
           <Typography
             as="li"
             variant="small"
@@ -82,50 +126,6 @@ export const CustomNavbar = () => {
             </a>
           </Typography>
           </>
-          ) : (
-            // Render manager options if the user role is manager
-            <>
-              <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-              >
-                <a href="#" className="flex items-center">
-                  Dashboard
-                </a>
-              </Typography>
-              <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-              >
-                <a href="#" className="flex items-center">
-                  Leave Requests
-                </a>
-              </Typography>
-              <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-              >
-                <a href="#" className="flex items-center">
-                  Rejected Requests
-                </a>
-              </Typography>
-              <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-              >
-                <a href="#" className="flex items-center">
-                  Approved Requests
-                </a>
-              </Typography>
-            </>
           )}
         </ul>
       );

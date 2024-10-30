@@ -127,6 +127,7 @@ const authSlice = createSlice({
           username: action.payload.username,
           role: action.payload.role
         };
+        console.log("loginuser slice line 130",state.user.role)
         localStorage.setItem('authState', JSON.stringify(state));
       })
       .addCase(loginUser.rejected, (state, action) => {
