@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import SignupPage from "./components/SignupPage";
 import LoginPage from "./components/LoginPage";
 import { Dashboard } from "./components/Dashboard";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 function App() {
 
 
@@ -13,8 +14,8 @@ function App() {
     <div className="App">
      <Routes>
       <Route path="/" element={<Layout/>}></Route>
-      <Route path="/signup" element={<SignupPage/>}></Route>
-      <Route path="/login" element={<LoginPage/>}></Route>
+      <Route path="/signup" element={<ProtectedRoute><SignupPage/></ProtectedRoute>}></Route>
+      <Route path="/login" element={<ProtectedRoute><LoginPage/></ProtectedRoute>}></Route>
       <Route path="/dashboard" element={<Dashboard/>}></Route>
      </Routes>
     </div> 
