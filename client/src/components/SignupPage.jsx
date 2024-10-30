@@ -269,8 +269,12 @@ const SignupPage = () => {
     });
 
     try {
-      await dispatch(signupUser(formDataToSend)).unwrap();
-      navigate('/dashboard');
+        const resultAction = await dispatch(signupUser(formDataToSend)).unwrap();
+        if (resultAction.login.role === 'employee') {
+            navigate('/employee_dashboard');
+          } else if (resultAction.login.role === 'manager') {
+            navigate('/hrdashboard');}
+          
     } catch (err) {
       // Error is handled by the slice
       console.error('Signup failed:', err);
