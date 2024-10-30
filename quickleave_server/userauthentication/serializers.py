@@ -29,3 +29,11 @@ class UserSignupSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
         return user
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Add extra responses here
+        data['email'] = self.user.email
+        data['username'] = self.user.username
+        data['role'] = self.user.role
+        return data

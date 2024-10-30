@@ -9,7 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 
-from .serializers import UserSignupSerializer
+from .serializers import UserSignupSerializer, CustomTokenObtainPairSerializer
 User = get_user_model()
 
 class SignupView(APIView):
@@ -25,9 +25,10 @@ class SignupView(APIView):
                     "user": UserSignupSerializer(user).data
                 }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 # User = get_user_model()
-    
+
 # class SignupView(APIView):
 #     permission_classes = [AllowAny]
     
