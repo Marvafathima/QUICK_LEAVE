@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import Calendar from 'react-multi-date-picker';
 import DatePanel from 'react-multi-date-picker/plugins/date_panel';
-// import gregorian from 'react-multi-date-picker/calendars/gregorian';
-// import gregorian_en from 'react-multi-date-picker/locales/gregorian_en';
 import { Input, Select, Option, Textarea, Button, Card, CardBody, CardHeader } from "@material-tailwind/react";
 import Layout from '../Layout';
+import { BASE_URL } from '../../config';
 const LeaveApplication = () => {
   const [leaveType, setLeaveType] = useState('');
   const [dates, setDates] = useState([]);
