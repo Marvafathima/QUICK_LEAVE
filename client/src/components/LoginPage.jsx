@@ -32,12 +32,11 @@ const LoginPage = () => {
     try {
       // Using the loginUser thunk from your slice
       const resultAction = await dispatch(loginUser(formData)).unwrap();
-    //   if (resultAction.role === 'employee') {
-    //     navigate('/employee_dashboard');
-    //   } else if (resultAction.role === 'manager') {
-    //     navigate('/hrdashboard');}
-      // If login is successful, navigate to dashboard
-    //   navigate('/dashboard');
+      if (resultAction.role === 'employee') {
+        navigate('/employee_dashboard');
+      } else if (resultAction.role === 'manager') {
+        navigate('/hrdashboard');}
+   
     } catch (err) {
       // Redux Toolkit will handle the error state
       console.error('Login failed:', err);

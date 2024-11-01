@@ -57,7 +57,7 @@ export const CustomNavbar = () => {
               color="blue-gray"
               className="p-1 font-normal"
             >
-              <a href="#" className="flex items-center">
+              <a href="" className="flex items-center">
                 Leave Requests
               </a>
             </Typography>
@@ -101,7 +101,7 @@ export const CustomNavbar = () => {
             color="blue-gray"
             className="p-1 font-normal"
           >
-            <a href="#" className="flex items-center">
+            <a href="/leave_application" className="flex items-center">
               Apply for leave
             </a>
           </Typography>

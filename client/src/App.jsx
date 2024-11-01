@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RoleProtectedRoute } from "./routes/RoleProtectedRoute";
 import { EmployeeDashboard } from "./components/employee/EmployeeDashboard";
 import { ManagerDashboard } from "./components/manager/ManagerDashboard";
+import LeaveApplication from "./components/employee/LeaveApplication";
 function App() {
 
 
@@ -19,10 +20,15 @@ function App() {
       <Route path="/" element={<Layout/>}></Route>
       <Route path="/signup" element={<ProtectedRoute><SignupPage/></ProtectedRoute>}></Route>
       <Route path="/login" element={<ProtectedRoute><LoginPage/></ProtectedRoute>}></Route>
-     <Route path="/dashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <Dashboard/></RoleProtectedRoute>}></Route>
+     {/* <Route path="/dashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <Dashboard/></RoleProtectedRoute>}></Route> */}
      <Route path="/hrdashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <ManagerDashboard/></RoleProtectedRoute>}></Route>
      <Route path="/employee_dashboard" element={<RoleProtectedRoute allowedRoles={['employee']} > <EmployeeDashboard/></RoleProtectedRoute>}></Route>
-     
+    
+     <Route path="/leave_application" element={ <RoleProtectedRoute allowedRoles={['employee']} > <LeaveApplication/> </RoleProtectedRoute>}></Route>
+
+
+
+    
      
      
      
