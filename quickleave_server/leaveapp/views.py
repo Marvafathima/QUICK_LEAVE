@@ -328,6 +328,63 @@ class RejectedLeavesView(APIView):
                 'message': 'An error occurred while fetching rejected leave requests'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class PendingLeavesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all pending leave requests for the logged-in user.
+        Also includes leave balance information.
+        """
+        try:
+            logger.info(f"Fetching pending leaves for user: {request.user.username}")
+            
+            pending_leaves = EmployeeLeave.objects.filter(
+                employee=request.user,
+                status='pending'
+            ).order_by('-created_at')
+            
+            serializer = EmployeeLeaveSerializer(pending_leaves, many=True)
+            
+            # Calculate leave balances for each type
+            start_of_year = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0)
+            leave_balances = {}
+            
+            for leave_type, _ in EmployeeLeave.LEAVE_CHOICES:
+                taken = EmployeeLeave.objects.filter(
+                    employee=request.user,
+                    leave_type=leave_type,
+                    status='pending',
+                    created_at__gte=start_of_year
+                ).aggregate(total=Sum('total_days'))['total'] or 0
+                
+                max_allowed = EmployeeLeave.get_max_days_for_leave_type(leave_type)
+                remaining = max_allowed - taken
+                
+                leave_balances[leave_type] = {
+                    'taken': taken,
+                    'max_allowed': max_allowed,
+                    'remaining': remaining
+                }
+            
+            logger.info(f"Found {len(serializer.data)} pending leave requests")
+            
+            return Response({
+                'status': 'success',
+                'message': 'Pending leave requests retrieved successfully',
+                'data': {
+                    'total_requests': len(serializer.data),
+                    'requests': serializer.data,
+                    'leave_balances': leave_balances
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching pending leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching pending leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class ApprovedLeavesView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -385,7 +442,6 @@ class ApprovedLeavesView(APIView):
                 'status': 'error',
                 'message': 'An error occurred while fetching approved leave requests'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 class AllLeavesView(APIView):
     permission_classes = [IsAuthenticated]
     

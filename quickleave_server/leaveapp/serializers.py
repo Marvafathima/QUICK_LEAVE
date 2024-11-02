@@ -259,7 +259,7 @@ class EmployeeLeaveSerializer(serializers.ModelSerializer):
         read_only_fields = ['employee', 'total_days', 'created_at', 'status']
 
     def get_employee_name(self, obj):
-        return f"{obj.employee.first_name} {obj.employee.last_name}".strip() or obj.employee.username
+        return obj.employee.username
 
     def get_leave_type_display(self, obj):
         return obj.get_leave_type_display()
@@ -275,7 +275,7 @@ class EmployeeLeaveSerializer(serializers.ModelSerializer):
             leave_type=obj.leave_type,
             status='approved',
             created_at__year=timezone.now().year
-        ).aggregate(total=models.Sum('total_days'))['total'] or 0
+        ).aggregate(total=Sum('total_days'))['total'] or 0
         
         return max_allowed - used_leaves
 
@@ -321,7 +321,7 @@ class EmployeeLeaveSerializer(serializers.ModelSerializer):
             leave_type=leave_type,
             status='approved',
             created_at__year=timezone.now().year
-        ).aggregate(total=models.Sum('total_days'))['total'] or 0
+        ).aggregate(total=Sum('total_days'))['total'] or 0
 
         # Check if the request exceeds available leaves
         if (used_leaves + total_requested_days) > max_allowed:
