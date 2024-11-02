@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Calendar from 'react-multi-date-picker';
 import DatePanel from 'react-multi-date-picker/plugins/date_panel';
 import { Input, Select, Option, Textarea, Button, Card, CardBody, CardHeader } from "@material-tailwind/react";
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { logout } from '../../app/slice/authSlice';
 const LeaveApplication = () => {
   const [leaveType, setLeaveType] = useState('');
   const [dates, setDates] = useState([]);
@@ -53,17 +54,15 @@ const handleSubmit = async (e) => {
       setErrors(validations);
       return;
     }
-
     setIsSubmitting(true);
 
-    // try {
+    try {
       // Get access token from localStorage
       const authState = JSON.parse(localStorage.getItem("authState"));
-    //   const token = localStorage.getItem('accessToken');
-    const token = authState ? authState.accessToken : null;
-
+      const token = authState ? authState.accessToken : null;
    
-      console.log("token got 61 leaveapppage",token)
+      console.log("token got 61 leaveapppage", token);
+      
       if (!token) {
         toast.error('Authentication required. Please login again.');
         navigate('/login');
@@ -73,14 +72,14 @@ const handleSubmit = async (e) => {
       // Prepare the request data
       const leaveData = {
         leaveType,
-        dates: dates.map(d => d.format('YYYY-MM-DD')), // Format dates consistently
+        dates: dates.map(d => d.format('YYYY-MM-DD')),
         reason: reason.trim(),
-        employeeId: user.id // Assuming employeeId is stored in localStorage
+        employeeId: user.id
       };
-      console.log("leaveData",leaveData)
-      // Make API request
+      
+      console.log("leaveData", leaveData);
+      
       const response = await axios.post(
-        // `${import.meta.env.VITE_API_BASE_URL}/api/leave/apply`,
         `${BASE_URL}leave/apply`,
         leaveData,
         {
@@ -92,71 +91,138 @@ const handleSubmit = async (e) => {
       );
 
       // Handle successful response
-      if (response.data.success) {
-        toast.success('Leave application submitted successfully!');
-        
-        // Reset form
-        setLeaveType('');
-        setDates([]);
-        setReason('');
-        setErrors({});
-        
-        // Optionally redirect to leaves list
-        navigate('/employee/leaves');
-      }
-
-    // } catch (error) {
-    //   // Handle different types of errors
-    //   if (error.response) {
-    //     // Server responded with an error
-    //     switch (error.response.status) {
-    //       case 400:
-    //         // Bad request - validation errors
-    //         if (error.response.data.errors) {
-    //           setErrors(error.response.data.errors);
-    //         } else {
-    //           toast.error(error.response.data.message || 'Invalid request. Please check your inputs.');
-    //         }
-    //         break;
-          
-    //       case 401:
-    //         // Unauthorized - token expired or invalid
-    //         toast.error('Session expired. Please login again.');
-    //         localStorage.clear();
-    //         navigate('/login');
-    //         break;
-          
-    //       case 403:
-    //         // Forbidden - insufficient leave balance or other policy violations
-    //         toast.error(error.response.data.message || 'Unable to apply for leave. Please check your leave balance.');
-    //         break;
-          
-    //       case 409:
-    //         // Conflict - overlapping leave dates or other conflicts
-    //         toast.error(error.response.data.message || 'Leave dates conflict with existing applications.');
-    //         break;
-          
-    //       case 500:
-    //         // Server error
-    //         toast.error('An unexpected error occurred. Please try again later.');
-    //         break;
-          
-    //       default:
-    //         toast.error('Something went wrong. Please try again.');
-    //     }
-    //   } else if (error.request) {
-    //     // Network error
-    //     toast.error('Unable to connect to the server. Please check your internet connection.');
-    //   } else {
-    //     // Other errors
-    //     toast.error('An unexpected error occurred. Please try again.');
-    //   }
+      toast.success('Leave application submitted successfully!');
       
-    //   console.error('Leave application error:', error);
-    // } finally {
-    //   setIsSubmitting(false);
-    // }
+      // Reset form
+      setLeaveType('');
+      setDates([]);
+      setReason('');
+      setErrors({});
+      
+      // Redirect to leaves list
+    //   navigate('/employee/leaves');
+
+    } catch (error) {
+      console.error('Leave application error:', error);
+      
+      if (error.response) {
+        const { data, status } = error.response;
+        
+        // Handle different types of error responses
+        if (status === 400) {
+          // Validation errors from the serializer
+          if (data.errors) {
+            // Handle structured validation errors
+            Object.entries(data.errors).forEach(([field, messages]) => {
+              if (Array.isArray(messages)) {
+                messages.forEach(message => toast.error(`${field}: ${message}`));
+              } else if (typeof messages === 'string') {
+                toast.error(`${field}: ${messages}`);
+              }
+            });
+          } else if (typeof data === 'object') {
+            // Handle individual field errors
+            Object.entries(data).forEach(([field, message]) => {
+              if (field === 'dates') {
+                // Handle date-related errors (conflicts, weekends, etc.)
+                toast.error(message);
+              } else if (field === 'leave_type') {
+                // Handle leave balance errors
+                toast.error(message);
+              } else {
+                toast.error(`${field}: ${message}`);
+              }
+            });
+          } else {
+            // Handle simple error message
+            toast.error(data.message || 'Invalid request. Please check your input.');
+          }
+        } else if (status === 401) {
+          // Handle authentication errors
+          toast.error('Session expired. Please login again.');
+          dispatch(logout());
+          navigate('/');
+        //   navigate('/login');
+        } else if (status === 403) {
+          // Handle permission errors
+          toast.error('You do not have permission to perform this action.');
+        } else if (status === 409) {
+          // Handle conflict errors (e.g., overlapping leaves)
+          toast.error(data.message || 'Conflict with existing leave application.');
+        } else {
+          // Handle other status codes
+          toast.error(data.message || 'An error occurred while submitting your application.');
+        }
+      } else if (error.request) {
+        // Handle network errors
+        toast.error('Unable to connect to the server. Please check your internet connection.');
+      } else {
+        // Handle other errors
+        toast.error('An unexpected error occurred. Please try again later.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+    // setIsSubmitting(true);
+
+    // // try {
+    //   // Get access token from localStorage
+    //   const authState = JSON.parse(localStorage.getItem("authState"));
+    // //   const token = localStorage.getItem('accessToken');
+    // const token = authState ? authState.accessToken : null;
+
+   
+    //   console.log("token got 61 leaveapppage",token)
+    //   if (!token) {
+    //     toast.error('Authentication required. Please login again.');
+    //     navigate('/login');
+    //     return;
+    //   }
+
+    //   // Prepare the request data
+    //   const leaveData = {
+    //     leaveType,
+    //     dates: dates.map(d => d.format('YYYY-MM-DD')), // Format dates consistently
+    //     reason: reason.trim(),
+    //     employeeId: user.id // Assuming employeeId is stored in localStorage
+    //   };
+    //   console.log("leaveData",leaveData)
+    //   // Make API request
+    //   const response = await axios.post(
+    //     // `${import.meta.env.VITE_API_BASE_URL}/api/leave/apply`,
+    //     `${BASE_URL}leave/apply`,
+    //     leaveData,
+    //     {
+    //       headers: {
+    //         'Authorization': `Bearer ${token}`,
+    //         'Content-Type': 'application/json'
+    //       }
+    //     }
+    //   );
+
+    //   // Handle successful response
+    //   if (response.data.success) {
+    //     toast.success('Leave application submitted successfully!');
+        
+    //     // Reset form
+    //     setLeaveType('');
+    //     setDates([]);
+    //     setReason('');
+    //     setErrors({});
+        
+    //     // Optionally redirect to leaves list
+    //     navigate('/employee/leaves');
+    //   }
+
+    
 };
+
+useEffect(() => {
+    return () => {
+      setIsSubmitting(false); // Reset isSubmitting when component unmounts
+    };
+  }, []);
+
   return (
     <Layout>
     <Card className="w-full max-w-2xl mx-auto mt-10">
