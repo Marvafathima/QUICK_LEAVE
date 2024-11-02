@@ -125,7 +125,8 @@ const authSlice = createSlice({
         state.user = {
           email: action.payload.email,
           username: action.payload.username,
-          role: action.payload.role
+          role: action.payload.role,
+          id:action.payload.id
         };
         console.log("loginuser slice line 130",state.user.role)
         localStorage.setItem('authState', JSON.stringify(state));

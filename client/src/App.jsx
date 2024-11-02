@@ -10,6 +10,9 @@ import { RoleProtectedRoute } from "./routes/RoleProtectedRoute";
 import { EmployeeDashboard } from "./components/employee/EmployeeDashboard";
 import { ManagerDashboard } from "./components/manager/ManagerDashboard";
 import LeaveApplication from "./components/employee/LeaveApplication";
+import { ToastContainer, toast } from 'react-toastify';
+
+
 function App() {
 
 
@@ -35,6 +38,7 @@ function App() {
      
      </Routes>
     </div> 
+    <ToastContainer />
     </BrowserRouter>
   )
 }

@@ -11,7 +11,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'phone_number', 'username', 'password', 'password2', 
+        fields = ('id','email', 'phone_number', 'username', 'password', 'password2', 
                  'role', 'profile_pic')
         extra_kwargs = {
             'email': {'required': True},
@@ -33,6 +33,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         # Add extra responses here
+        data['id'] = self.user.id
         data['email'] = self.user.email
         data['username'] = self.user.username
         data['role'] = self.user.role

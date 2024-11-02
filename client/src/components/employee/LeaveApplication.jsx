@@ -4,13 +4,25 @@ import DatePanel from 'react-multi-date-picker/plugins/date_panel';
 import { Input, Select, Option, Textarea, Button, Card, CardBody, CardHeader } from "@material-tailwind/react";
 import Layout from '../Layout';
 import { BASE_URL } from '../../config';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 const LeaveApplication = () => {
   const [leaveType, setLeaveType] = useState('');
   const [dates, setDates] = useState([]);
   const [reason, setReason] = useState('');
   const [errors, setErrors] = useState({});
   const [calendarOpen, setCalendarOpen] = useState(false);
-
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { loading, error, user, isAuthenticated } = useSelector((state) => ({
+    loading: state.auth.loading,
+    error: state.auth.error,
+    user: state.auth.user,
+    isAuthenticated: state.auth.isAuthenticated
+  }));
+    
   // Custom date validator
   const dateValidator = (date) => {
     // Disable weekends and past dates
@@ -24,10 +36,11 @@ const LeaveApplication = () => {
     );
   };
 
-  const handleSubmit = (e) => {
+
+const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation logic remains the same as previous example
+    // Form validation
     const validations = {
       leaveType: !leaveType ? 'Leave type is required' : '',
       dates: dates.length === 0 ? 'Please select at least one date' : '',
@@ -41,20 +54,109 @@ const LeaveApplication = () => {
       return;
     }
 
-    // TODO: Send leave application to backend
-    console.log('Leave Application Submitted:', {
-      leaveType,
-      dates: dates.map(d => d.format()),
-      reason
-    });
+    setIsSubmitting(true);
 
-    // Reset form
-    setLeaveType('');
-    setDates([]);
-    setReason('');
-    setErrors({});
-  };
+    // try {
+      // Get access token from localStorage
+      const authState = JSON.parse(localStorage.getItem("authState"));
+    //   const token = localStorage.getItem('accessToken');
+    const token = authState ? authState.accessToken : null;
 
+   
+      console.log("token got 61 leaveapppage",token)
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        navigate('/login');
+        return;
+      }
+
+      // Prepare the request data
+      const leaveData = {
+        leaveType,
+        dates: dates.map(d => d.format('YYYY-MM-DD')), // Format dates consistently
+        reason: reason.trim(),
+        employeeId: user.id // Assuming employeeId is stored in localStorage
+      };
+      console.log("leaveData",leaveData)
+      // Make API request
+      const response = await axios.post(
+        // `${import.meta.env.VITE_API_BASE_URL}/api/leave/apply`,
+        `${BASE_URL}leave/apply`,
+        leaveData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Handle successful response
+      if (response.data.success) {
+        toast.success('Leave application submitted successfully!');
+        
+        // Reset form
+        setLeaveType('');
+        setDates([]);
+        setReason('');
+        setErrors({});
+        
+        // Optionally redirect to leaves list
+        navigate('/employee/leaves');
+      }
+
+    // } catch (error) {
+    //   // Handle different types of errors
+    //   if (error.response) {
+    //     // Server responded with an error
+    //     switch (error.response.status) {
+    //       case 400:
+    //         // Bad request - validation errors
+    //         if (error.response.data.errors) {
+    //           setErrors(error.response.data.errors);
+    //         } else {
+    //           toast.error(error.response.data.message || 'Invalid request. Please check your inputs.');
+    //         }
+    //         break;
+          
+    //       case 401:
+    //         // Unauthorized - token expired or invalid
+    //         toast.error('Session expired. Please login again.');
+    //         localStorage.clear();
+    //         navigate('/login');
+    //         break;
+          
+    //       case 403:
+    //         // Forbidden - insufficient leave balance or other policy violations
+    //         toast.error(error.response.data.message || 'Unable to apply for leave. Please check your leave balance.');
+    //         break;
+          
+    //       case 409:
+    //         // Conflict - overlapping leave dates or other conflicts
+    //         toast.error(error.response.data.message || 'Leave dates conflict with existing applications.');
+    //         break;
+          
+    //       case 500:
+    //         // Server error
+    //         toast.error('An unexpected error occurred. Please try again later.');
+    //         break;
+          
+    //       default:
+    //         toast.error('Something went wrong. Please try again.');
+    //     }
+    //   } else if (error.request) {
+    //     // Network error
+    //     toast.error('Unable to connect to the server. Please check your internet connection.');
+    //   } else {
+    //     // Other errors
+    //     toast.error('An unexpected error occurred. Please try again.');
+    //   }
+      
+    //   console.error('Leave application error:', error);
+    // } finally {
+    //   setIsSubmitting(false);
+    // }
+};
   return (
     <Layout>
     <Card className="w-full max-w-2xl mx-auto mt-10">
@@ -145,8 +247,9 @@ const LeaveApplication = () => {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" color="green" fullWidth>
-            Apply for Leave
+          <Button type="submit" color="green" fullWidth 
+          disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Apply for Leave'}
           </Button>
         </form>
       </CardBody>
