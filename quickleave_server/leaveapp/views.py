@@ -1,46 +1,4 @@
-# from django.shortcuts import render
 
-# from rest_framework import generics, status
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-# from django.db import transaction
-# from .serializers import LeaveApplicationSerializer
-# from .models import EmployeeLeave
-
-# class LeaveApplicationView(generics.CreateAPIView):
-#     serializer_class = LeaveApplicationSerializer
-#     permission_classes = [IsAuthenticated]
-    
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(
-#             data=request.data, 
-#             context={'request': request}
-#         )
-        
-#         try:
-#             with transaction.atomic():
-#                 if serializer.is_valid(raise_exception=True):
-#                     self.perform_create(serializer)
-                    
-#                     return Response({
-#                         'success': True,
-#                         'message': 'Leave application submitted successfully',
-#                         'data': serializer.data
-#                     }, status=status.HTTP_201_CREATED)
-                    
-#         except serializer.ValidationError as e:
-#             return Response({
-#                 'success': False,
-#                 'message': 'Validation failed',
-#                 'errors': e.detail
-#             }, status=status.HTTP_400_BAD_REQUEST)
-            
-#         except Exception as e:
-#             return Response({
-#                 'success': False,
-#                 'message': str(e),
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# views.py
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -48,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from django.db import transaction
 from .serializers import LeaveApplicationSerializer
 from .models import EmployeeLeave
-from .serializers import ManagerLeaveRequestSerializer
+from .serializers import ManagerLeaveRequestSerializer,EmployeeLeaveSerializer
 from django.db.models import Q
 from django.utils import timezone
 import logging
@@ -333,4 +291,172 @@ class FetchAllApprovedLeaves(APIView):
                 'message': 'An error occurred while fetching approved leave requests'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-       
+
+
+class RejectedLeavesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all rejected leave requests for the logged-in user.
+        """
+        try:
+            logger.info(f"Fetching rejected leaves for user: {request.user.username}")
+            
+            rejected_leaves = EmployeeLeave.objects.filter(
+                employee=request.user,
+                status='rejected'
+            ).order_by('-created_at')
+            
+            serializer = EmployeeLeaveSerializer(rejected_leaves, many=True)
+            
+            logger.info(f"Found {len(serializer.data)} rejected leave requests")
+            
+            return Response({
+                'status': 'success',
+                'message': 'Rejected leave requests retrieved successfully',
+                'data': {
+                    'total_requests': len(serializer.data),
+                    'requests': serializer.data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching rejected leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching rejected leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ApprovedLeavesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all approved leave requests for the logged-in user.
+        Also includes leave balance information.
+        """
+        try:
+            logger.info(f"Fetching approved leaves for user: {request.user.username}")
+            
+            approved_leaves = EmployeeLeave.objects.filter(
+                employee=request.user,
+                status='approved'
+            ).order_by('-created_at')
+            
+            serializer = EmployeeLeaveSerializer(approved_leaves, many=True)
+            
+            # Calculate leave balances for each type
+            start_of_year = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0)
+            leave_balances = {}
+            
+            for leave_type, _ in EmployeeLeave.LEAVE_CHOICES:
+                taken = EmployeeLeave.objects.filter(
+                    employee=request.user,
+                    leave_type=leave_type,
+                    status='approved',
+                    created_at__gte=start_of_year
+                ).aggregate(total=Sum('total_days'))['total'] or 0
+                
+                max_allowed = EmployeeLeave.get_max_days_for_leave_type(leave_type)
+                remaining = max_allowed - taken
+                
+                leave_balances[leave_type] = {
+                    'taken': taken,
+                    'max_allowed': max_allowed,
+                    'remaining': remaining
+                }
+            
+            logger.info(f"Found {len(serializer.data)} approved leave requests")
+            
+            return Response({
+                'status': 'success',
+                'message': 'Approved leave requests retrieved successfully',
+                'data': {
+                    'total_requests': len(serializer.data),
+                    'requests': serializer.data,
+                    'leave_balances': leave_balances
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching approved leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching approved leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AllLeavesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all leave requests for the logged-in user regardless of status.
+        Includes summary statistics.
+        """
+        try:
+            logger.info(f"Fetching all leaves for user: {request.user.username}")
+            
+            # Get all leaves
+            all_leaves = EmployeeLeave.objects.filter(
+                employee=request.user
+            ).order_by('-created_at')
+            
+            serializer = EmployeeLeaveSerializer(all_leaves, many=True)
+            
+            # Calculate summary statistics
+            start_of_year = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0)
+            
+            summary = {
+                'total_requests': len(serializer.data),
+                'status_counts': {
+                    'pending': all_leaves.filter(status='pending').count(),
+                    'approved': all_leaves.filter(status='approved').count(),
+                    'rejected': all_leaves.filter(status='rejected').count()
+                },
+                'leave_type_breakdown': {},
+                'yearly_statistics': {
+                    'total_leaves_taken': 0,
+                    'leave_type_usage': {}
+                }
+            }
+            
+            # Calculate leave type breakdown
+            for leave_type, name in EmployeeLeave.LEAVE_CHOICES:
+                type_count = all_leaves.filter(leave_type=leave_type).count()
+                taken_this_year = all_leaves.filter(
+                    leave_type=leave_type,
+                    status='approved',
+                    created_at__gte=start_of_year
+                ).aggregate(total=Sum('total_days'))['total'] or 0
+                
+                max_allowed = EmployeeLeave.get_max_days_for_leave_type(leave_type)
+                
+                summary['leave_type_breakdown'][leave_type] = {
+                    'name': name,
+                    'total_requests': type_count,
+                    'taken_this_year': taken_this_year,
+                    'max_allowed': max_allowed,
+                    'remaining': max_allowed - taken_this_year
+                }
+                
+                summary['yearly_statistics']['total_leaves_taken'] += taken_this_year
+                summary['yearly_statistics']['leave_type_usage'][leave_type] = taken_this_year
+            
+            logger.info(f"Successfully retrieved all leave requests with summary")
+            
+            return Response({
+                'status': 'success',
+                'message': 'All leave requests retrieved successfully',
+                'data': {
+                    'summary': summary,
+                    'requests': serializer.data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching all leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

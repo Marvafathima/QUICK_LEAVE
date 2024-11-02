@@ -121,8 +121,8 @@ export const CustomNavbar = () => {
             color="blue-gray"
             className="p-1 font-normal"
           >
-            <a href="#" className="flex items-center">
-            Total leaves Report:
+            <a href="/myrejected/requests" className="flex items-center">
+            Rejected Leave Requests
             </a>
           </Typography>
           </>

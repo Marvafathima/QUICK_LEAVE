@@ -227,3 +227,125 @@ class ManagerLeaveRequestSerializer(serializers.ModelSerializer):
     
     def get_dates(self, obj):
         return obj.selected_dates
+    
+
+
+
+from django.utils import timezone
+from datetime import datetime
+
+class EmployeeLeaveSerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField()
+    leave_type_display = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    remaining_leaves = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeLeave
+        fields = [
+            'id',
+            'employee',
+            'employee_name',
+            'leave_type',
+            'leave_type_display',
+            'reason',
+            'selected_dates',
+            'total_days',
+            'created_at',
+            'status',
+            'status_display',
+            'remaining_leaves'
+        ]
+        read_only_fields = ['employee', 'total_days', 'created_at', 'status']
+
+    def get_employee_name(self, obj):
+        return f"{obj.employee.first_name} {obj.employee.last_name}".strip() or obj.employee.username
+
+    def get_leave_type_display(self, obj):
+        return obj.get_leave_type_display()
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()
+
+    def get_remaining_leaves(self, obj):
+        # Calculate remaining leaves for the leave type
+        max_allowed = EmployeeLeave.get_max_days_for_leave_type(obj.leave_type)
+        used_leaves = EmployeeLeave.objects.filter(
+            employee=obj.employee,
+            leave_type=obj.leave_type,
+            status='approved',
+            created_at__year=timezone.now().year
+        ).aggregate(total=models.Sum('total_days'))['total'] or 0
+        
+        return max_allowed - used_leaves
+
+    def validate_selected_dates(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Selected dates must be a list")
+        
+        if not value:
+            raise serializers.ValidationError("At least one date must be selected")
+
+        # Convert string dates to datetime objects for validation
+        try:
+            dates = [datetime.strptime(date, '%Y-%m-%d').date() for date in value]
+        except ValueError:
+            raise serializers.ValidationError("Dates must be in YYYY-MM-DD format")
+
+        # Check if dates are in the past
+        today = timezone.now().date()
+        if any(date < today for date in dates):
+            raise serializers.ValidationError("Cannot select dates in the past")
+
+        # Check for duplicate dates
+        if len(dates) != len(set(dates)):
+            raise serializers.ValidationError("Duplicate dates are not allowed")
+
+        return value
+
+    def validate(self, data):
+        # Get the employee from the context (set this in your view)
+        employee = self.context['request'].user
+        leave_type = data.get('leave_type')
+        selected_dates = data.get('selected_dates', [])
+
+        # Calculate total requested days
+        total_requested_days = len(selected_dates)
+
+        # Get maximum allowed days for this leave type
+        max_allowed = EmployeeLeave.get_max_days_for_leave_type(leave_type)
+
+        # Calculate already used leaves for this type in the current year
+        used_leaves = EmployeeLeave.objects.filter(
+            employee=employee,
+            leave_type=leave_type,
+            status='approved',
+            created_at__year=timezone.now().year
+        ).aggregate(total=models.Sum('total_days'))['total'] or 0
+
+        # Check if the request exceeds available leaves
+        if (used_leaves + total_requested_days) > max_allowed:
+            raise serializers.ValidationError({
+                'selected_dates': f'You have only {max_allowed - used_leaves} days of {leave_type} leave remaining this year'
+            })
+
+        # Check for overlapping leaves
+        existing_leaves = EmployeeLeave.objects.filter(
+            employee=employee,
+            status__in=['approved', 'pending']
+        )
+        
+        for leave in existing_leaves:
+            existing_dates = set(leave.selected_dates)
+            requested_dates = set(selected_dates)
+            if existing_dates.intersection(requested_dates):
+                raise serializers.ValidationError({
+                    'selected_dates': 'You already have leave requested or approved for some of these dates'
+                })
+
+        return data
+
+    def create(self, validated_data):
+        # Set the employee as the current user
+        validated_data['employee'] = self.context['request'].user
+        return super().create(validated_data)
