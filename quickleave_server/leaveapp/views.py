@@ -104,12 +104,6 @@ class ManagerPendingLeavesView(APIView):
             # Get current date
             current_date = timezone.now().date()
             
-            # Query for pending leave requests
-            # Filter for pending status and future dates
-            # pending_leaves = EmployeeLeave.objects.filter(
-            #     status='pending',
-            #     employee__department=request.user.department  # Assuming manager can only see their department's requests
-            # ).select_related('employee').order_by('-created_at')
             pending_leaves = EmployeeLeave.objects.filter(
                 status='pending'
             ).select_related('employee').order_by('-created_at')
@@ -262,3 +256,81 @@ class PendingLeaveDetailView(APIView):
                 'status': 'error',
                 'message': 'An error occurred while updating the leave request'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FetchAllRejectedLeaves(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        """
+        Get all rejected leave requests for the manager.
+        Returns leave requests that are in 'rejected' status.
+        """
+        try:
+            logger.info(f"Fetching rejected leave requests for manager: {request.user.username}")
+            
+            # Get current date
+            current_date = timezone.now().date()
+            
+            rejected_leaves = EmployeeLeave.objects.filter(
+                status='rejected'
+            ).select_related('employee').order_by('-created_at')
+            
+            # Serialize the data
+            serializer = ManagerLeaveRequestSerializer(rejected_leaves, many=True)
+            
+            logger.info(f"Found {len(serializer.data)} rejected leave requests")
+            
+            return Response({
+                'status': 'success',
+                'message': 'Rejected leave requests retrieved successfully',
+                'data': {
+                    'total_requests': len(serializer.data),
+                    'requests': serializer.data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching rejected leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching rejected leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FetchAllApprovedLeaves(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        """
+        Get all approved leave requests for the manager.
+        Returns leave requests that are in 'approved' status.
+        """
+        try:
+            logger.info(f"Fetching approved leave requests for manager: {request.user.username}")
+            
+            # Get current date
+            current_date = timezone.now().date()
+            
+            approved_leaves = EmployeeLeave.objects.filter(
+                status='approved'
+            ).select_related('employee').order_by('-created_at')
+            
+            # Serialize the data
+            serializer = ManagerLeaveRequestSerializer(approved_leaves, many=True)
+            
+            logger.info(f"Found {len(serializer.data)} approved leave requests")
+            
+            return Response({
+                'status': 'success',
+                'message': 'Approved leave requests retrieved successfully',
+                'data': {
+                    'total_requests': len(serializer.data),
+                    'requests': serializer.data
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching approved leave requests: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching approved leave requests'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+       

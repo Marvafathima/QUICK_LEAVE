@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -23,7 +22,7 @@ import { BASE_URL } from '../../config';
 const TABLE_HEAD = ["Employee", "Applied On", "Leave Type", "Reason", "Duration", "Actions"];
 const ITEMS_PER_PAGE = 5;
 
-const PendingLeavesManager = () => {
+const RejectedLeaves = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,7 +48,7 @@ const PendingLeavesManager = () => {
     try {
       setLoading(true);
      
-      const response = await axios.get(`${BASE_URL}leave/pending/requests`,
+      const response = await axios.get(`${BASE_URL}rejected/leave`,
      { headers: {
         'Authorization': `Bearer ${token}`,
       }}
@@ -82,22 +81,22 @@ const PendingLeavesManager = () => {
     }
   };
 
-  const handleAction = async (leaveId, action) => {
-    try {
+//   const handleAction = async (leaveId, action) => {
+//     try {
 
-      await axios.put(`${BASE_URL}leave/pending/request/${leaveId}`, {
-        status: action},
-        {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      });
-      fetchLeaves(); // Refresh the list
-    } catch (err) {
-      console.error(err);
+//       await axios.put(`${BASE_URL}leave/pending/request/${leaveId}`, {
+//         status: action},
+//         {
+//         headers: {
+//           'Authorization': `Bearer ${token}`,
+//         }
+//       });
+//       fetchLeaves(); // Refresh the list
+//     } catch (err) {
+//       console.error(err);
       
-    }
-  };
+//     }
+//   };
 
   const filteredLeaves = leaves.filter(leave => 
     leave.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,10 +117,10 @@ const PendingLeavesManager = () => {
         <div className="mb-4 flex flex-col justify-between gap-8 md:flex-row md:items-center">
           <div>
             <Typography variant="h5" color="blue-gray">
-              Pending Leave Requests
+              Rejected Leave Requests
             </Typography>
             <Typography color="gray" className="mt-1 font-normal">
-              Manage pending leave requests from your team members
+              Manage rejected leave requests from your team members
             </Typography>
           </div>
           <div className="flex w-full shrink-0 gap-2 md:w-max">
@@ -200,7 +199,7 @@ const PendingLeavesManager = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </IconButton>
-                      <IconButton
+                      {/* <IconButton
                         variant="text"
                         color="green"
                         onClick={() => handleAction(leave.id, 'approved')}
@@ -213,7 +212,12 @@ const PendingLeavesManager = () => {
                         onClick={() => handleAction(leave.id, 'rejected')}
                       >
                         <X className="h-4 w-4" />
-                      </IconButton>
+                      </IconButton> */}
+                      <Button
+                    variant="outlined"
+                    color="red">
+                        Rejected
+                    </Button>
                     </div>
                   </td>
                 </tr>
@@ -317,7 +321,7 @@ const PendingLeavesManager = () => {
             </div>
           )}
         </DialogBody>
-        <DialogFooter className="space-x-2">
+        {/* <DialogFooter className="space-x-2">
           <Button
             variant="outlined"
             color="red"
@@ -338,11 +342,11 @@ const PendingLeavesManager = () => {
           >
             Approve
           </Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </Dialog>
     </Card>
     </Layout>
   );
 };
 
-export default PendingLeavesManager;
+export default RejectedLeaves;
