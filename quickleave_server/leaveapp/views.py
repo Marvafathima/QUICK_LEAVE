@@ -203,8 +203,7 @@ class PendingLeaveDetailView(APIView):
             
             # Get the leave request
             leave_request = EmployeeLeave.objects.filter(
-                id=leave_id,
-                employee__department=request.user.department
+                id=leave_id
             ).select_related('employee').first()
             
             if not leave_request:

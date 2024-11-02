@@ -353,7 +353,15 @@ const PendingLeavesManager = () => {
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [employeeInfo, setEmployeeInfo] = useState(null);
-
+  const authState = JSON.parse(localStorage.getItem("authState"));
+      const token = authState ? authState.accessToken : null;
+      console.log(token,"this is the token")
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        navigate('/login');
+        return;
+      }
   useEffect(() => {
     fetchLeaves();
   }, []);
@@ -361,15 +369,7 @@ const PendingLeavesManager = () => {
   const fetchLeaves = async () => {
     try {
       setLoading(true);
-      const authState = JSON.parse(localStorage.getItem("authState"));
-      const token = authState ? authState.accessToken : null;
-      
-      
-      if (!token) {
-        toast.error('Authentication required. Please login again.');
-        navigate('/login');
-        return;
-      }
+     
       const response = await axios.get(`${BASE_URL}leave/pending/requests`,
      { headers: {
         'Authorization': `Bearer ${token}`,
@@ -388,15 +388,7 @@ const PendingLeavesManager = () => {
 
   const fetchLeaveDetails = async (leaveId) => {
     try {
-      const authState = JSON.parse(localStorage.getItem("authState"));
-      const token = authState ? authState.accessToken : null;
-      console.log(token,"this is the token")
       
-      if (!token) {
-        toast.error('Authentication required. Please login again.');
-        navigate('/login');
-        return;
-      }
       const response = await axios.get(`${BASE_URL}leave/pending/request/${leaveId}`,
       { headers: {
         'Authorization': `Bearer ${token}`,
@@ -413,12 +405,18 @@ const PendingLeavesManager = () => {
 
   const handleAction = async (leaveId, action) => {
     try {
-      await axios.put(`/api/manager/pending-leaves/${leaveId}/`, {
-        status: action
+
+      await axios.put(`${BASE_URL}leave/pending/request/${leaveId}`, {
+        status: action},
+        {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
       });
       fetchLeaves(); // Refresh the list
     } catch (err) {
       console.error(err);
+      
     }
   };
 
@@ -597,9 +595,7 @@ const PendingLeavesManager = () => {
                   <Typography color="gray" className="mt-2">
                     Name: {selectedLeave.employee_name}
                   </Typography>
-                  {/* <Typography color="gray">
-                    Department: {selectedLeave.employee.department}
-                  </Typography> */}
+                 
                 </div>
                 <div>
                   <Typography variant="h6" color="blue-gray">
