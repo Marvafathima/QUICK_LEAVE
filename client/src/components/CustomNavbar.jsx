@@ -47,8 +47,18 @@ export const CustomNavbar = () => {
               color="blue-gray"
               className="p-1 font-normal"
             >
-              <a href="#" className="flex items-center">
+              <a href="/hrdashboard" className="flex items-center">
                 Dashboard
+              </a>
+            </Typography>
+            <Typography
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="p-1 font-normal"
+            >
+              <a href="/employee/leave/stat" className="flex items-center">
+                Leave statistics
               </a>
             </Typography>
             <Typography
@@ -85,6 +95,16 @@ export const CustomNavbar = () => {
           ) : (
             // Render manager options if the user role is manager
             <>
+           <Typography
+            as="li"
+            variant="small"
+            color="blue-gray"
+            className="p-1 font-normal"
+          >
+            <a href="/employee_dashboard" className="flex items-center">
+              Dashboard
+            </a>
+          </Typography>  
           <Typography
             as="li"
             variant="small"

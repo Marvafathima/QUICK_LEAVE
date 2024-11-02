@@ -17,6 +17,7 @@ import ApprovedLeaves from "./components/manager/ApprovedLeaves";
 import RejectedLeavesDisplay from "./components/employee/RejectedLeavesDisplay";
 import ApprovedLeavesDisplay from "./components/employee/ApprovedLeaveDisplay";
 import PendingLeaveDisplay from "./components/employee/PendingLeaveDisplay";
+import EmployeeLeaveStatsWithLayout from "./components/manager/EmployeeLeaveStat";
 function App() {
 
 
@@ -34,6 +35,7 @@ function App() {
      <Route path="/pending_leave/request" element={<RoleProtectedRoute allowedRoles={['manager']} > <PendingLeavesManager/></RoleProtectedRoute>}></Route>
      <Route path="/rejected_leave/request" element={<RoleProtectedRoute allowedRoles={['manager']} > <RejectedLeaves/></RoleProtectedRoute>}></Route>
      <Route path="/approved_leave/request" element={<RoleProtectedRoute allowedRoles={['manager']} > <ApprovedLeaves/></RoleProtectedRoute>}></Route>
+     <Route path="/employee/leave/stat" element={<RoleProtectedRoute allowedRoles={['manager']} > <EmployeeLeaveStatsWithLayout/></RoleProtectedRoute>}></Route>
      
      
      

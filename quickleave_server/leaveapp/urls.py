@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import LeaveApplicationView,ManagerPendingLeavesView,PendingLeaveDetailView\
-    ,FetchAllRejectedLeaves,FetchAllApprovedLeaves,PendingLeavesView,RejectedLeavesView,ApprovedLeavesView
+    ,FetchAllRejectedLeaves,FetchAllApprovedLeaves,PendingLeavesView,RejectedLeavesView,ApprovedLeavesView\
+    ,EmployeeLeaveStatsView
 
 urlpatterns = [
  path('leave/apply', LeaveApplicationView.as_view(), name='leave_apply'),
@@ -11,4 +12,5 @@ urlpatterns = [
 path("mypending/leave",PendingLeavesView.as_view()),
 path("myapproved/leave",ApprovedLeavesView.as_view()),
 path("myrejected/leave",RejectedLeavesView.as_view()),
+path("employee_leave_stats",EmployeeLeaveStatsView.as_view())
 ]

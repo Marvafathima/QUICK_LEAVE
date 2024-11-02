@@ -516,3 +516,115 @@ class AllLeavesView(APIView):
                 'status': 'error',
                 'message': 'An error occurred while fetching leave requests'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+from django.db.models import Count, Q, Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from userauthentication.models import CustomUser
+import logging
+
+logger = logging.getLogger(__name__)
+
+class EmployeeLeaveStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get comprehensive leave statistics for all employees.
+        """
+        try:
+            logger.info("Fetching employee leave statistics")
+            
+            # Get current year for filtering
+            current_year = timezone.now().year
+            
+            # Get all employees with their profiles
+            employees = CustomUser.objects.filter(is_active=True,role='employee').select_related('employeeprofile')
+            
+            employee_stats = []
+            
+            for employee in employees:
+                # Get all approved leaves for the employee in current year
+                approved_leaves = EmployeeLeave.objects.filter(
+                    employee=employee,
+                    status='approved',
+                    created_at__year=current_year
+                )
+                
+                # Initialize leave type stats
+                leave_type_stats = {}
+                
+                # Calculate stats for each leave type
+                for leave_type, display_name in EmployeeLeave.LEAVE_CHOICES:
+                    max_allowed = EmployeeLeave.LEAVE_ALLOWANCES[leave_type]
+                    
+                    # Get taken leaves for this type
+                    taken_leaves = approved_leaves.filter(
+                        leave_type=leave_type
+                    ).aggregate(
+                        total_days=Coalesce(Sum('total_days'), 0)
+                    )['total_days']
+                    
+                    leave_type_stats[leave_type] = {
+                        'type_display': display_name,
+                        'max_allowed': max_allowed,
+                        'taken': taken_leaves,
+                        'balance': max_allowed - taken_leaves
+                    }
+                
+                # Calculate overall statistics
+                total_leaves_taken = sum(stat['taken'] for stat in leave_type_stats.values())
+                total_leaves_allowed = sum(EmployeeLeave.LEAVE_ALLOWANCES.values())
+                
+                # Get pending leaves count
+                pending_leaves = EmployeeLeave.objects.filter(
+                    employee=employee,
+                    status='pending'
+                ).count()
+                
+                # Create employee stats dictionary
+                employee_data = {
+                    'employee_id': employee.id,
+                    'employee_name': employee.username,
+                    'overall_stats': {
+                        'total_allowed': total_leaves_allowed,
+                        'total_taken': total_leaves_taken,
+                        'total_balance': total_leaves_allowed - total_leaves_taken,
+                        'pending_requests': pending_leaves
+                    },
+                    'leave_type_breakdown': leave_type_stats,
+                    # Get recent leave requests (last 5)
+                    'recent_leaves': [{
+                        'type': leave.leave_type,
+                        'type_display': leave.get_leave_type_display(),
+                        'status': leave.status,
+                        'status_display': leave.get_status_display(),
+                        'days': leave.total_days,
+                        'created_at': leave.created_at
+                    } for leave in EmployeeLeave.objects.filter(
+                        employee=employee
+                    ).order_by('-created_at')[:5]]
+                }
+                
+                employee_stats.append(employee_data)
+            
+            return Response({
+                'status': 'success',
+                'message': 'Employee leave statistics retrieved successfully',
+                'data': {
+                    'total_employees': len(employee_stats),
+                    'employees': employee_stats
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error fetching employee leave statistics: {str(e)}", exc_info=True)
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while fetching employee leave statistics'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
