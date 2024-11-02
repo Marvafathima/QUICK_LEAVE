@@ -16,6 +16,7 @@ import RejectedLeaves from "./components/manager/RejectedLeaves";
 import ApprovedLeaves from "./components/manager/ApprovedLeaves";
 import RejectedLeavesDisplay from "./components/employee/RejectedLeavesDisplay";
 import ApprovedLeavesDisplay from "./components/employee/ApprovedLeaveDisplay";
+import PendingLeaveDisplay from "./components/employee/PendingLeaveDisplay";
 function App() {
 
 
@@ -44,14 +45,10 @@ function App() {
      <Route path="/leave_application" element={ <RoleProtectedRoute allowedRoles={['employee']} > <LeaveApplication/> </RoleProtectedRoute>}></Route>
      <Route path="/myrejected/requests" element={ <RoleProtectedRoute allowedRoles={['employee']} > <RejectedLeavesDisplay/> </RoleProtectedRoute>}></Route>
      <Route path="/myapproved/requests" element={ <RoleProtectedRoute allowedRoles={['employee']} > <ApprovedLeavesDisplay/> </RoleProtectedRoute>}></Route>
+     <Route path="/mypending/requests" element={ <RoleProtectedRoute allowedRoles={['employee']} > <PendingLeaveDisplay/> </RoleProtectedRoute>}></Route>
 
 
 
-    
-     
-     
-     
-     
      </Routes>
     </div> 
    

@@ -111,8 +111,8 @@ export const CustomNavbar = () => {
             color="blue-gray"
             className="p-1 font-normal"
           >
-            <a href="#" className="flex items-center">
-            My Leave Requests
+            <a href="/mypending/requests" className="flex items-center">
+            Pending Requests
             </a>
           </Typography>
           <Typography
@@ -122,7 +122,7 @@ export const CustomNavbar = () => {
             className="p-1 font-normal"
           >
             <a href="/myrejected/requests" className="flex items-center">
-            Rejected Leave Requests
+            Rejected Requests
             </a>
           </Typography>
           </>
