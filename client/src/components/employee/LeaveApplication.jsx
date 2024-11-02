@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { logout } from '../../app/slice/authSlice';
+
 const LeaveApplication = () => {
   const [leaveType, setLeaveType] = useState('');
   const [dates, setDates] = useState([]);

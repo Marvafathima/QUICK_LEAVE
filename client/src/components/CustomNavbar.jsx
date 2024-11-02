@@ -91,8 +91,8 @@ export const CustomNavbar = () => {
             color="blue-gray"
             className="p-1 font-normal"
           >
-            <a href="#" className="flex items-center">
-              Dashboard
+            <a href="/myapproved/requests" className="flex items-center">
+              My leaves
             </a>
           </Typography>
           <Typography
