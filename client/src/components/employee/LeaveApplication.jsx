@@ -61,7 +61,6 @@ const handleSubmit = async (e) => {
       const authState = JSON.parse(localStorage.getItem("authState"));
       const token = authState ? authState.accessToken : null;
    
-      console.log("token got 61 leaveapppage", token);
       
       if (!token) {
         toast.error('Authentication required. Please login again.');

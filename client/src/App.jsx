@@ -11,7 +11,7 @@ import { EmployeeDashboard } from "./components/employee/EmployeeDashboard";
 import { ManagerDashboard } from "./components/manager/ManagerDashboard";
 import LeaveApplication from "./components/employee/LeaveApplication";
 import { ToastContainer, toast } from 'react-toastify';
-
+import PendingLeavesManager from "./components/manager/PendingLeavesManager";
 
 function App() {
 
@@ -27,6 +27,12 @@ function App() {
       <Route path="/login" element={<ProtectedRoute><LoginPage/></ProtectedRoute>}></Route>
      {/* <Route path="/dashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <Dashboard/></RoleProtectedRoute>}></Route> */}
      <Route path="/hrdashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <ManagerDashboard/></RoleProtectedRoute>}></Route>
+     <Route path="/pending_leave/request" element={<RoleProtectedRoute allowedRoles={['manager']} > <PendingLeavesManager/></RoleProtectedRoute>}></Route>
+     
+     
+     
+     
+     
      <Route path="/employee_dashboard" element={<RoleProtectedRoute allowedRoles={['employee']} > <EmployeeDashboard/></RoleProtectedRoute>}></Route>
     
      <Route path="/leave_application" element={ <RoleProtectedRoute allowedRoles={['employee']} > <LeaveApplication/> </RoleProtectedRoute>}></Route>
