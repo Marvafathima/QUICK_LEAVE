@@ -363,7 +363,7 @@ const PendingLeavesManager = () => {
       setLoading(true);
       const authState = JSON.parse(localStorage.getItem("authState"));
       const token = authState ? authState.accessToken : null;
-      console.log(token,"this is the token")
+      
       
       if (!token) {
         toast.error('Authentication required. Please login again.');
@@ -376,7 +376,6 @@ const PendingLeavesManager = () => {
       }}
       
       );
-      console.log("respne from request",response)
       setLeaves(response.data.data.requests);
       setError(null);
     } catch (err) {
@@ -389,7 +388,21 @@ const PendingLeavesManager = () => {
 
   const fetchLeaveDetails = async (leaveId) => {
     try {
-      const response = await axios.get(`/api/manager/pending-leaves/${leaveId}/`);
+      const authState = JSON.parse(localStorage.getItem("authState"));
+      const token = authState ? authState.accessToken : null;
+      console.log(token,"this is the token")
+      
+      if (!token) {
+        toast.error('Authentication required. Please login again.');
+        navigate('/login');
+        return;
+      }
+      const response = await axios.get(`${BASE_URL}leave/pending/request/${leaveId}`,
+      { headers: {
+        'Authorization': `Bearer ${token}`,
+      }});
+
+      console.log("respne from request",response)
       setEmployeeInfo(response.data.data.employee_info);
       setSelectedLeave(response.data.data.leave_request);
       setDetailsOpen(true);
@@ -584,9 +597,9 @@ const PendingLeavesManager = () => {
                   <Typography color="gray" className="mt-2">
                     Name: {selectedLeave.employee_name}
                   </Typography>
-                  <Typography color="gray">
+                  {/* <Typography color="gray">
                     Department: {selectedLeave.employee.department}
-                  </Typography>
+                  </Typography> */}
                 </div>
                 <div>
                   <Typography variant="h6" color="blue-gray">
@@ -614,12 +627,13 @@ const PendingLeavesManager = () => {
                   <Typography color="gray">
                     Duration: {selectedLeave.total_days} days
                   </Typography>
-                  <Typography color="gray">
-                    Start Date: {new Date(selectedLeave.start_date).toLocaleDateString()}
-                  </Typography>
-                  <Typography color="gray">
-                    End Date: {new Date(selectedLeave.end_date).toLocaleDateString()}
-                  </Typography>
+
+                 
+<p>Leave Dates</p>
+{selectedLeave.dates && selectedLeave.dates.map((date) => (
+  <Typography color="gray" key={date}>
+    {new Date(date).toLocaleDateString()}
+  </Typography> ))}
                   <Typography color="gray">
                     Reason: {selectedLeave.reason}
                   </Typography>

@@ -145,11 +145,7 @@ class PendingLeaveDetailView(APIView):
         try:
             logger.info(f"Fetching details for leave request ID: {leave_id}")
             
-            # Get the specific leave request
-            # leave_request = EmployeeLeave.objects.filter(
-            #     id=leave_id,
-            #     employee__department=request.user.department
-            # ).select_related('employee').first()
+           
             leave_request = EmployeeLeave.objects.filter(
                 id=leave_id
             ).select_related('employee').first()
@@ -174,7 +170,7 @@ class PendingLeaveDetailView(APIView):
                 status='approved',
                 created_at__gte=start_of_year
             ).aggregate(total_days=Sum('total_days'))['total_days'] or 0
-            
+            print("\n\n\n\n\n\n\n\n",serializer.data)
             # Get leave balance
             max_allowed = EmployeeLeave.get_max_days_for_leave_type(leave_type)
             remaining_balance = max_allowed - leaves_taken
