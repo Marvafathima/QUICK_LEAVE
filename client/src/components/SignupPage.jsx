@@ -7,6 +7,8 @@ import axios from 'axios';
 import Layout from './Layout';
 import { signupUser } from '../app/slice/authSlice';
 import { toast } from 'react-toastify';
+import { loginUser, selectAuthError,selectAuthLoading}from '../app/slice/authSlice';
+
 const SignupPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
