@@ -6,7 +6,7 @@ import axios from 'axios';
 // import { setCredentials } from '../app/slice/authSlice';
 import Layout from './Layout';
 import { signupUser } from '../app/slice/authSlice';
-
+import { toast } from 'react-toastify';
 const SignupPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const SignupPage = () => {
     profile_pic: null,
   });
   const [errors, setErrors] = useState({});
-// const loading = useSelector(selectAuthLoading);
+const loading = useSelector(selectAuthLoading);
 //   const error = useSelector(selectAuthError);
 
   const validateForm = () => {
@@ -247,9 +247,10 @@ const SignupPage = () => {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  Sign up
+                  disabled={loading}
+                  className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                > {loading ? 'Signing up...' : 'Sign up'}
+          
                 </button>
               </div>
             </form>

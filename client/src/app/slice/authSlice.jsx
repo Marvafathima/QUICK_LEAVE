@@ -1,13 +1,13 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-
+import { BASE_URL } from '../../config';
 // Async thunks for authentication actions
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/token/', credentials);
+      const response = await axios.post(`${BASE_URL}api/token/`, credentials);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -20,7 +20,7 @@ export const signupUser = createAsyncThunk(
   async (formData, { dispatch, rejectWithValue }) => {
     try {
       // First, create the user
-      const response = await axios.post('http://localhost:8000/signup/', formData, {
+      const response = await axios.post(`${BASE_URL}signup/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
