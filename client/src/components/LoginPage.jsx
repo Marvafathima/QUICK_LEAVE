@@ -35,7 +35,7 @@ const LoginPage = () => {
       if (resultAction.role === 'employee') {
         navigate('/employee_dashboard');
       } else if (resultAction.role === 'manager') {
-        navigate('/hrdashboard');}
+        navigate('/employee/leave/stat');}
    
     } catch (err) {
       // Redux Toolkit will handle the error state

@@ -18,6 +18,7 @@ import RejectedLeavesDisplay from "./components/employee/RejectedLeavesDisplay";
 import ApprovedLeavesDisplay from "./components/employee/ApprovedLeaveDisplay";
 import PendingLeaveDisplay from "./components/employee/PendingLeaveDisplay";
 import EmployeeLeaveStatsWithLayout from "./components/manager/EmployeeLeaveStat";
+import LandingPage from "./components/LangingPage";
 function App() {
 
 
@@ -27,9 +28,10 @@ function App() {
 
     <div className="App">
      <Routes>
-      <Route path="/" element={<Layout/>}></Route>
+      {/* <Route path="/" element={<Layout/>}></Route> */}
       <Route path="/signup" element={<ProtectedRoute><SignupPage/></ProtectedRoute>}></Route>
       <Route path="/login" element={<ProtectedRoute><LoginPage/></ProtectedRoute>}></Route>
+      <Route path="/" element={<LandingPage/>}></Route>
      {/* <Route path="/dashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <Dashboard/></RoleProtectedRoute>}></Route> */}
      <Route path="/hrdashboard" element={<RoleProtectedRoute allowedRoles={['manager']} > <ManagerDashboard/></RoleProtectedRoute>}></Route>
      <Route path="/pending_leave/request" element={<RoleProtectedRoute allowedRoles={['manager']} > <PendingLeavesManager/></RoleProtectedRoute>}></Route>
