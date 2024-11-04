@@ -26,7 +26,7 @@ function App() {
     <BrowserRouter>
     <ToastContainer />
 
-    <div className="App">
+    <div>
      <Routes>
       {/* <Route path="/" element={<Layout/>}></Route> */}
       <Route path="/signup" element={<ProtectedRoute><SignupPage/></ProtectedRoute>}></Route>
